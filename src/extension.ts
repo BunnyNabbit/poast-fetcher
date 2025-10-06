@@ -1,24 +1,42 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode"
+import { Poaster } from "./Poaster"
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "poast-fetcher" is now active!')
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand("poast-fetcher.helloWorld", () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage("Hello World from PoastFetcher!")
-	})
-
-	context.subscriptions.push(disposable)
+	const poaster = new Poaster(context)
+	context.subscriptions.push(
+		vscode.window.registerUriHandler({
+			handleUri: (uri: vscode.Uri) => {
+				poaster.handleUri(uri)
+			},
+		})
+	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("poast-fetcher.configure", async () => {
+			const configurationItems: vscode.QuickPickItem[] = [
+				{ label: "Add account", description: "Login with an existing account." },
+				{ label: "Remove account", description: "Remove an added account." },
+			]
+			vscode.window
+				.showQuickPick(configurationItems, {
+					placeHolder: "Pick one",
+				})
+				.then(async (selection) => {
+					if (!selection) return
+					if (selection == configurationItems[0]) {
+						const handle = await vscode.window.showInputBox({
+							prompt: "Enter handle.",
+							placeHolder: "account.bsky.social",
+						})
+						if (!handle) return
+						const status = await poaster.addAccount(handle)
+						if (status.type == Poaster.oauthStatusTypes.loginRequired) {
+							vscode.window.showInformationMessage("Login required. A browser window will now open.")
+							vscode.env.openExternal(vscode.Uri.parse(status.url))
+						}
+					}
+				})
+		})
+	)
 }
 
 // This method is called when your extension is deactivated
