@@ -35,13 +35,9 @@ export function activate(context: vscode.ExtensionContext) {
 							vscode.env.openExternal(vscode.Uri.parse(status.url))
 						}
 					} else if (selection == configurationItems[1]) {
-						const accounts = await poaster.accountManager.getManagedAccounts()
-						if (accounts.length === 0) {
-							vscode.window.showInformationMessage("No accounts to remove.")
-							return
-						}
-						const accountSelection = await vscode.window.showQuickPick(accounts, {
+						const accountSelection = await poaster.promptPickAccount({
 							placeHolder: "Select an account to remove.",
+							noAccountsText: "No accounts to remove."
 						})
 						if (!accountSelection) return
 						await poaster.accountManager.removeManagedAccount(accountSelection.did)
