@@ -33,6 +33,18 @@ export function activate(context: vscode.ExtensionContext) {
 							vscode.window.showInformationMessage("Login required. A browser window will now open.")
 							vscode.env.openExternal(vscode.Uri.parse(status.url))
 						}
+					} else if (selection == configurationItems[1]) {
+						const accounts = await poaster.getManagedAccounts()
+						if (accounts.length === 0) {
+							vscode.window.showInformationMessage("No accounts to remove.")
+							return
+						}
+						const accountSelection = await vscode.window.showQuickPick(accounts, {
+							placeHolder: "Select an account to remove.",
+						})
+						if (!accountSelection) return
+						await poaster.removeManagedAccount(accountSelection.did)
+						vscode.window.showInformationMessage(`Removed account ${accountSelection}.`)
 					}
 				})
 		})

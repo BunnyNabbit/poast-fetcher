@@ -74,21 +74,13 @@ export class Poaster {
 	}
 
 	async addAccount(handle: string) {
-		// Check if account already exists
-		// const existingAgent = this.agents.find((agent) => agent.session?.handle === handle)
-		// if (existingAgent) {
-		// 	vscode.window.showInformationMessage(`Account with handle ${handle} already exists.`)
-		// 	return { type: Poaster.oauthStatusTypes.proceed }
-		// }
 		const url: URL = await this.oauthClient.authorize(handle, {
-			state: "you can put anyzhing in here."
+			state: "you can put anyzhing in here.",
 		})
 		return { type: Poaster.oauthStatusTypes.loginRequired, url: url.toString() }
 	}
 
 	handleUri(uri: vscode.Uri) {
-		// if (uri.path !== "/atproto-oauth-callback") return
-		vscode.window.showInformationMessage(`handle`)
 		this.completeLogin(uri).catch((err) => {
 			console.error("Error completing login:", err)
 			vscode.window.showErrorMessage("Error completing login. See console for details.")
@@ -99,15 +91,74 @@ export class Poaster {
 		const params = new URLSearchParams(uri.query)
 		const { session, state } = await this.oauthClient.callback(params)
 		const agent = new Agent(session)
-		// agent.
 		this.agents.push(agent)
 		if (agent.did) {
 			const profile = await agent.getProfile({ actor: agent.did })
-			console.log("Bsky profile:", profile.data)
-			vscode.window.showInformationMessage(`Login successful for ${profile.data.handle} - ${JSON.stringify(profile.data)}`)
+			vscode.window.showInformationMessage(`Login successful for ${profile.data.displayName ?? agent.did}.`)
+			this.addManagedAccount(agent.did, profile.data.displayName ?? agent.did).catch((err) => {
+				console.error("Error saving account:", err)
+			})
 		}
-
-		// vscode.window.showInformationMessage(`Login successful for ${session.handle}`)
-		// console.log("Logged in with handle", session.handle)
 	}
+
+	async removeManagedAccount(did: string) {
+		const accounts = await this.getManagedAccounts()
+		const index = accounts.findIndex((account: { did: string }) => account.did == did)
+		if (index !== -1) {
+			accounts.splice(index, 1)
+			await this.saveManagedAccounts(accounts)
+		}
+	}
+
+	async addManagedAccount(did: string, label: string) {
+		const accounts = await this.getManagedAccounts()
+		if (accounts.some((account) => account.did == did)) return
+		accounts.push(new SavedAccount(did, label))
+		await this.saveManagedAccounts(accounts)
+	}
+
+	async saveManagedAccounts(accounts: SavedAccount[]) {
+		await this.context.secrets.store("poaster-managed-accounts", JSON.stringify(accounts.map((account) => account.serialize())))
+	}
+
+	async getManagedAccounts(): Promise<SavedAccount[]> {
+		const savedAccounts = await this.context.secrets.get("poaster-managed-accounts")
+		if (!savedAccounts) return []
+		return JSON.parse(savedAccounts).map((savedAccount: serializedSavedAccount) => {
+			return SavedAccount.deserialize(savedAccount)
+		})
+	}
+}
+
+class SavedAccount implements vscode.QuickPickItem {
+	did: string
+	label: string
+	/** */
+	constructor(did: string, label: string) {
+		this.did = did
+		this.label = label
+	}
+
+	serialize(): serializedSavedAccount {
+		return { did: this.did, label: this.label }
+	}
+
+	toString() {
+		return `${this.label} (${this.did})`
+	}
+
+	static deserialize(serialized: string | serializedSavedAccount) {
+		if (typeof serialized !== "string") return new SavedAccount(serialized.did, serialized.label)
+		const { did, label } = JSON.parse(serialized)
+		return new SavedAccount(did, label)
+	}
+
+	get detail() {
+		return this.did
+	}
+}
+
+interface serializedSavedAccount {
+	did: string
+	label: string
 }
