@@ -1,12 +1,13 @@
 import * as vscode from "vscode"
 import { Poaster } from "./Poaster"
+import { AccountManager } from "./AccountManager"
 
 export function activate(context: vscode.ExtensionContext) {
 	const poaster = new Poaster(context)
 	context.subscriptions.push(
 		vscode.window.registerUriHandler({
 			handleUri: (uri: vscode.Uri) => {
-				poaster.handleUri(uri)
+				poaster.accountManager.handleUri(uri)
 			},
 		})
 	)
@@ -28,13 +29,13 @@ export function activate(context: vscode.ExtensionContext) {
 							placeHolder: "account.bsky.social",
 						})
 						if (!handle) return
-						const status = await poaster.addAccount(handle)
-						if (status.type == Poaster.oauthStatusTypes.loginRequired) {
+						const status = await poaster.accountManager.addAccount(handle)
+						if (status.type == AccountManager.oauthStatusTypes.loginRequired) {
 							vscode.window.showInformationMessage("Login required. A browser window will now open.")
 							vscode.env.openExternal(vscode.Uri.parse(status.url))
 						}
 					} else if (selection == configurationItems[1]) {
-						const accounts = await poaster.getManagedAccounts()
+						const accounts = await poaster.accountManager.getManagedAccounts()
 						if (accounts.length === 0) {
 							vscode.window.showInformationMessage("No accounts to remove.")
 							return
@@ -43,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 							placeHolder: "Select an account to remove.",
 						})
 						if (!accountSelection) return
-						await poaster.removeManagedAccount(accountSelection.did)
+						await poaster.accountManager.removeManagedAccount(accountSelection.did)
 						vscode.window.showInformationMessage(`Removed account ${accountSelection}.`)
 					}
 				})
