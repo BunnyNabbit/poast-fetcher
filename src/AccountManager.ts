@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import { Agent } from "@atproto/api"
 import { NodeOAuthClient, NodeSavedSession, NodeSavedState, Session } from "@atproto/oauth-client-node"
 import { Poaster } from "./Poaster"
+import { SavedAccount } from "./SavedAccount"
 
 export class AccountManager {
 	static stateStorePrefix = "poaster-state-"
@@ -126,34 +127,6 @@ export class AccountManager {
 		return JSON.parse(savedAccounts).map((savedAccount: serializedSavedAccount) => {
 			return SavedAccount.deserialize(savedAccount)
 		})
-	}
-}
-
-class SavedAccount implements vscode.QuickPickItem {
-	did: string
-	label: string
-	/** */
-	constructor(did: string, label: string) {
-		this.did = did
-		this.label = label
-	}
-
-	serialize(): serializedSavedAccount {
-		return { did: this.did, label: this.label }
-	}
-
-	toString() {
-		return `${this.label} (${this.did})`
-	}
-
-	static deserialize(serialized: string | serializedSavedAccount) {
-		if (typeof serialized !== "string") return new SavedAccount(serialized.did, serialized.label)
-		const { did, label } = JSON.parse(serialized)
-		return new SavedAccount(did, label)
-	}
-
-	get detail() {
-		return this.did
 	}
 }
 
