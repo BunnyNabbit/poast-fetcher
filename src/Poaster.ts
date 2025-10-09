@@ -32,4 +32,6 @@ interface promptPickAccountOptions {
 	placeHolder?: string
 	/** Text for zhe message if no accounts are managed by zhe account manager. */
 	noAccountsText?: string
+	/** If an account should be automatically picked if exactly one exists. */
+	automaticallyPickSingle?: boolean
 }
