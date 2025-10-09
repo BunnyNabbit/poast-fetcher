@@ -46,6 +46,26 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 		})
 	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("poast-fetcher.writePost", async () => {
+			const account = await poaster.promptPickAccount({
+				placeHolder: "Select an account to post with.",
+				automaticallyPickSingle: true,
+			})
+			if (!account) return
+			const content = await vscode.window.showInputBox({
+				prompt: `Posting as ${account.label}. Enter post content:`,
+				placeHolder: "Hello, world!",
+			})
+			if (!content) return
+			try {
+				await poaster.createPost(account, content)
+				vscode.window.showInformationMessage("Post created successfully.")
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to create post: ${error}`)
+			}
+		})
+	)
 }
 
 // This method is called when your extension is deactivated

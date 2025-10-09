@@ -91,7 +91,7 @@ export class AccountManager {
 		const params = new URLSearchParams(uri.query)
 		const { session, state } = await this.oauthClient.callback(params)
 		const agent = new Agent(session)
-		this.poaster.agents.push(agent)
+		this.poaster.agents.set(session.did, agent)
 		if (agent.did) {
 			const profile = await agent.getProfile({ actor: agent.did })
 			vscode.window.showInformationMessage(`Login successful for ${profile.data.displayName ?? agent.did}.`)
