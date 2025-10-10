@@ -1,12 +1,13 @@
 {
   "name": "poast-fetcher",
-  "displayName": "PoastFetcher",
-  "publisher": "bunnynabbit",
+  "displayName": "Poast Fetcher",
+  "publisher": "BunnyNabbit",
   "description": "",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.104.0"
   },
+  "license": "MIT",
   "categories": [
     "Other"
   ],
