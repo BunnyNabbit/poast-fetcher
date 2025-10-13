@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import { Poaster } from "./Poaster"
 import { AccountManager } from "./AccountManager"
+import { TimelineFeed } from "./BaseFeed"
 
 export function activate(context: vscode.ExtensionContext) {
 	const poaster = new Poaster(context)
@@ -64,6 +65,16 @@ export function activate(context: vscode.ExtensionContext) {
 			} catch (error) {
 				vscode.window.showErrorMessage(`Failed to create post: ${error}`)
 			}
+		})
+	)
+	context.subscriptions.push(
+		vscode.commands.registerCommand("poast-fetcher.openFeed", async () => {
+			const account = await poaster.promptPickAccount({
+				placeHolder: "Select an account",
+				automaticallyPickSingle: true,
+			})
+			if (!account) return
+			const panel = poaster.openFeedView(account, TimelineFeed, {})
 		})
 	)
 }

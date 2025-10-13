@@ -22,8 +22,21 @@
       {
         "command": "poast-fetcher.writePost",
         "title": "Poast Fetcher: Write simple text post"
+      },
+      {
+        "command": "poast-fetcher.openFeed",
+        "title": "Poast Fetcher: Open a feed"
       }
-    ]
+    ],
+    "views": {
+      "feed": [
+        {
+          "id": "feed",
+          "name": "Feed",
+          "icon": "media/dep.svg"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
@@ -37,6 +50,7 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.104.0",
+    "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
     "@vscode/test-cli": "^0.0.11",

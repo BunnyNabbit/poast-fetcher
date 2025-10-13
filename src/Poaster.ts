@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import { Agent } from "@atproto/api"
 import { AccountManager } from "./AccountManager"
 import { SavedAccount } from "./SavedAccount"
+import { BaseFeed, TimelineFeed } from "./BaseFeed"
 
 export class Poaster {
 	agents: Map<string, Agent>
@@ -47,6 +48,43 @@ export class Poaster {
 		await agent.post({
 			text: content,
 		})
+	}
+
+	getFeedViewHtml(panel: vscode.WebviewPanel) {
+		const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "main.js"))
+		const styleSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "vscode.css"))
+		return `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link href="${styleSrc}" rel="stylesheet" />
+	<script src="${scriptSrc}"></script>
+</head>
+<body>
+	<div id="postsContainer"></div>
+</body>`
+	}
+
+	async openFeedView(account: SavedAccount, feedClass: typeof BaseFeed, feedOptions?: any) {
+		const agent = await this.ensureAgentForSavedAccount(account)
+		if (!agent) throw new Error("Could not get agent for account.")
+		const feed = new feedClass(agent, feedOptions)
+		const panel = vscode.window.createWebviewPanel("feed", `Feed - ${account.label}`, vscode.ViewColumn.Active, {
+			enableScripts: true,
+			localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, "media", "client")],
+			retainContextWhenHidden: true, // TODO: Retain state so zhis doesn't have to be enabled.
+		})
+		panel.webview.html = this.getFeedViewHtml(panel)
+		panel.webview.onDidReceiveMessage(async (message) => {})
+		feed.addPosts.event(async (posts) => {
+			panel.webview.postMessage({ type: "addPosts", value: posts })
+		})
+		feed.loadMore().catch((err) => {
+			vscode.window.showErrorMessage(`Failed to load feed: ${err}`)
+			panel.webview.postMessage({ type: "error", value: err?.message })
+		})
+		return panel
 	}
 }
 
