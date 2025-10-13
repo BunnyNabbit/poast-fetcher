@@ -52,12 +52,14 @@ export class Poaster {
 
 	getFeedViewHtml(panel: vscode.WebviewPanel) {
 		const scriptSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "main.js"))
-		const styleSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "vscode.css"))
+		const vscodeStyleSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "vscode.css"))
+		const styleSrc = panel.webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, "media", "client", "styles.css"))
 		return `<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link href="${vscodeStyleSrc}" rel="stylesheet" />
 	<link href="${styleSrc}" rel="stylesheet" />
 	<script src="${scriptSrc}"></script>
 </head>

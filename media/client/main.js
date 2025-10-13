@@ -13,7 +13,6 @@
 	// Handle messages sent from the extension to the webview
 	window.addEventListener("message", (event) => {
 		/** @type {{type: string; value: AppBskyFeedDefs.FeedViewPost[]}} */
-		console.log("okay")
 		const message = event.data
 		if (message.type == "addPosts") {
 			const posts = message.value
@@ -21,9 +20,11 @@
 			const postsContainer = document.getElementById("postsContainer")
 			if (!postsContainer) return
 			postsContainer.innerHTML = ""
-			for (const post of posts) {
+			for (const feedViewPost of posts) {
 				const postElement = document.createElement("div")
-				postElement.innerText = JSON.stringify(post)
+				const textContentElement = document.createElement("p")
+				textContentElement.innerText = `${feedViewPost.post.record?.text}`
+				postElement.appendChild(textContentElement)
 				postsContainer.appendChild(postElement)
 			}
 		}
