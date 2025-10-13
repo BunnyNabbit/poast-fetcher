@@ -15,7 +15,25 @@
 	height: 32px;
 	border-radius: 16px;
 }
-@media screen and (max-width: 300px) {
+.soft {
+	opacity: 0.6;
+}
+.pronouns {
+	text-transform: lowercase;
+}
+.imagesThumbnailContainer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-top: 8px;
+}
+.postImageThumbnail {
+	width: 256px;
+	height: 256px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+@media screen and (max-width: 400px) {
 	.avatar {
 		width: 24px;
 		height: 24px;
@@ -24,10 +42,8 @@
 	.soft {
 		display: none;
 	}
-}
-.soft {
-	opacity: 0.6;
-}
-.pronouns {
-	text-transform: lowercase;
+	.postImageThumbnail {
+		width: 128px;
+		height: 128px;
+	}
 }
