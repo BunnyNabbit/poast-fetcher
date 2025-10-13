@@ -18,6 +18,10 @@
       {
         "command": "poast-fetcher.configure",
         "title": "Poast Fetcher: Configure ATProto account"
+      },
+      {
+        "command": "poast-fetcher.writePost",
+        "title": "Poast Fetcher: Write simple text post"
       }
     ]
   },
