@@ -1,0 +1,33 @@
+.post {
+	border: 1px solid #ccc;
+	padding: 8px;
+	margin-bottom: 8px;
+	border-radius: 4px;
+}
+.authorContainer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	line-break: anywhere;
+}
+.avatar {
+	width: 32px;
+	height: 32px;
+	border-radius: 16px;
+}
+@media screen and (max-width: 300px) {
+	.avatar {
+		width: 24px;
+		height: 24px;
+		border-radius: 12px;
+	}
+	.soft {
+		display: none;
+	}
+}
+.soft {
+	opacity: 0.6;
+}
+.pronouns {
+	text-transform: lowercase;
+}
