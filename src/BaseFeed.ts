@@ -62,7 +62,7 @@ export class BaseFeed {
 export class TimelineFeed extends BaseFeed {
 	/** */
 	async getPosts(cursor: string) {
-		const response = await this.agent.getTimeline({ cursor, limit: 20 })
+		const response = await this.agent.getTimeline({ cursor, limit: 100 })
 		return new FeedResult(response.data.feed, response.data.cursor)
 	}
 
