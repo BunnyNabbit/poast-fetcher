@@ -12,43 +12,61 @@
 	// vscode.postMessage({  })
 
 	class PostGenerator {
-		/** @param {AppBskyFeedDefs.FeedViewPost} feedViewPost */
-		static generatePostCard(feedViewPost) {
+		/** @param {AppBskyFeedDefs.FeedViewPost | import("@atproto/api/dist/client/types/app/bsky/embed/record").View} viewPost */
+		static generatePostCard(viewPost, isQuoted = false) {
+			console.log(viewPost)
+			let post
+			let record
+			if (viewPost.$type == "app.bsky.embed.record#view") {
+				post = viewPost.record
+				record = viewPost.record.value
+			} else if (viewPost.$type == "app.bsky.embed.record#viewRecord") {
+				post = viewPost
+				record = viewPost.value
+			} else {
+				post = viewPost.post
+				record = viewPost.post.record
+			}
 			const postElement = document.createElement("div")
 			postElement.className = "post"
 			const authorContainer = document.createElement("div")
 			authorContainer.className = "authorContainer"
 			postElement.appendChild(authorContainer)
 			const avatarElement = document.createElement("img")
-			avatarElement.src = feedViewPost.post.author.avatar ?? ""
+			avatarElement.src = post.author.avatar ?? ""
 			avatarElement.className = "avatar"
 			authorContainer.appendChild(avatarElement)
 			const displayNameElement = document.createElement("strong")
-			displayNameElement.innerText = `${feedViewPost.post.author.displayName ?? feedViewPost.post.author.handle}`
+			displayNameElement.innerText = `${post.author.displayName ?? post.author.handle}`
 			authorContainer.appendChild(displayNameElement)
 			const handleElement = document.createElement("span")
-			handleElement.innerText = `@${feedViewPost.post.author.handle}`
+			handleElement.innerText = `@${post.author.handle}`
 			handleElement.className = "soft"
-			if (feedViewPost.post.author.pronouns) {
+			if (post.author.pronouns) {
 				const pronounsElement = document.createElement("span")
-				pronounsElement.innerText = `(${feedViewPost.post.author.pronouns})`
+				pronounsElement.innerText = ` (${post.author.pronouns})`
 				pronounsElement.className = "pronouns soft"
 				handleElement.appendChild(pronounsElement)
 			}
 			authorContainer.appendChild(handleElement)
 			const textContentElement = document.createElement("p")
-			textContentElement.innerText = `${feedViewPost.post.record?.text}`
+			textContentElement.innerText = `${record?.text}`
 			postElement.appendChild(textContentElement)
-			if (feedViewPost.post.embed) {
-				const embedElement = PostGenerator.generatePostEmbed(feedViewPost.post.embed)
+			if (post.embed) {
+				const embedElement = PostGenerator.generatePostEmbed(post.embed, isQuoted)
 				if (embedElement) postElement.appendChild(embedElement)
+			} else if (post.embeds) {
+				for (const embed of post.embeds) {
+					const embedElement = PostGenerator.generatePostEmbed(embed, isQuoted)
+					if (embedElement) postElement.appendChild(embedElement)
+				}
 			}
 			return postElement
 		}
 		/**@todo Use ATProto package validation?
 		 * @param {import("@atproto/api").$Typed<import("@atproto/api/dist/client/types/app/bsky/embed/images").View> | import("@atproto/api").$Typed<import("@atproto/api/dist/client/types/app/bsky/embed/video").View> | import("@atproto/api").$Typed<import("@atproto/api/dist/client/types/app/bsky/embed/external").View> | import("@atproto/api").$Typed<import("@atproto/api/dist/client/types/app/bsky/embed/record").View> | import("@atproto/api").$Typed<import("@atproto/api/dist/client/types/app/bsky/embed/recordWithMedia").View> | { $type: string?; }} embed - wtf
 		 */
-		static generatePostEmbed(embed) {
+		static generatePostEmbed(embed, isQuoted = false) {
 			/** @param {View} imageView */
 			function handleImageView(imageView) {
 				if (typeof embed.$type == null) return
@@ -69,8 +87,25 @@
 				/** @type {import("@atproto/api/dist/client/types/app/bsky/embed/recordWithMedia").View} */
 				// @ts-ignore
 				const recordWithMediaView = embed
+				const quotedPostElement = PostGenerator.generatePostCard(recordWithMediaView.record.record, true)
+				const divElement = document.createElement("div")
+				if (recordWithMediaView.media.$type == "app.bsky.embed.images#view") {
+					const imagesContainer = handleImageView(recordWithMediaView.media)
+					if (imagesContainer) divElement.appendChild(imagesContainer)
+				}
+				quotedPostElement.className += " quotedPost"
+				divElement.appendChild(quotedPostElement)
+				return divElement
+			}
+			if (embed.$type == "app.bsky.embed.record#view") {
+				/** @type {import("@atproto/api/dist/client/types/app/bsky/embed/record").View} */
 				// @ts-ignore
-				if (recordWithMediaView.media.$type == "app.bsky.embed.images#view") return handleImageView(recordWithMediaView.media)
+				const recordView = embed
+				if (recordView.record) {
+					const quotedPostElement = PostGenerator.generatePostCard(recordView, true)
+					quotedPostElement.className += " quotedPost"
+					return quotedPostElement
+				}
 			}
 		}
 	}
