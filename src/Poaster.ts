@@ -65,6 +65,7 @@ export class Poaster {
 </head>
 <body>
 	<div id="postsContainer"></div>
+	<button id="loadMoreButton" disabled>Load more</button>
 </body>`
 	}
 
@@ -78,14 +79,31 @@ export class Poaster {
 			retainContextWhenHidden: true, // TODO: Retain state so zhis doesn't have to be enabled.
 		})
 		panel.webview.html = this.getFeedViewHtml(panel)
-		panel.webview.onDidReceiveMessage(async (message) => {})
+		panel.webview.onDidReceiveMessage(async (message) => {
+			if (message.type == "like") {
+				console.log(message)
+				agent.like(message.post.uri, message.post.cid).catch((err) => {
+					console.error(err)
+					vscode.window.showErrorMessage(`Failed to like post.`)
+				})
+			} else if (message.type == "loadMore") {
+				feed.loadMore().catch((err) => {
+					vscode.window.showErrorMessage(`Failed to load feed: ${err}`)
+				})
+			}
+		})
 		feed.addPosts.event(async (posts) => {
 			panel.webview.postMessage({ type: "addPosts", value: posts })
 		})
-		feed.loadMore().catch((err) => {
-			vscode.window.showErrorMessage(`Failed to load feed: ${err}`)
-			panel.webview.postMessage({ type: "error", value: err?.message })
-		})
+		feed
+			.loadMore()
+			.catch((err) => {
+				vscode.window.showErrorMessage(`Failed to load feed: ${err}`)
+				panel.webview.postMessage({ type: "error", value: err?.message })
+			})
+			.then(() => {
+				panel.webview.postMessage({ type: "setLoad" })
+			})
 		return panel
 	}
 }

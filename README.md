@@ -4,6 +4,25 @@ He is called "poast Fetcher" for an amazing reason.
 
 ![On the lower part of the image, there is a blue lizard-like figure riding a black dragon pool toy. The pool toy is lying on the ground with all fours. It has a solid cyan eye on the side of its grinning face. There is a collage of screenshots in a speech bubble coming from the pool toy and makes up the top part of the image. The text primary discusses issues related to fonts and character encoding of the Classic protocol which ClassiCube is built on. It mentions how a client built from the ground up using web technology may approach font rendering and how it may not be compatible with custom texture packs. Most of the text is written in Zhing-like English. In response to this verbose text, the blue lizard-like figure responds with "Woau!".](https://shelby.bunnynabbit.com/vorbose.png)
 
+## Fetchers
+
+- Display posts from following users. `Poast Fetcher: Open a feed`
+  - Images.
+	- Quoted posts.
+	- [Pronouns](https://github.com/bluesky-social/atproto/pull/4224).
+- Multi-account management. `Poast Fetcher: Configure ATProto account`
+- Create simple text posts. `Poast Fetcher: Write simple text post`
+- Like posts.
+  - Being unable to like posts is a totally deliberate ~~feature~~ fetcher. What is a world without love?
+
+## "Romed" Izuses
+
+the webview isn't very good.
+
+### Slackin' "Modera Labels"
+
+The Poast's Fetcher may fetch content despite your moderation labels. Unless your followed users don't post what your labelers have labeled, it's not recommended in an area of work.
+
 <!-- ## Features
 
 Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.

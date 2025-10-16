@@ -33,16 +33,16 @@
 			authorContainer.className = "authorContainer"
 			postElement.appendChild(authorContainer)
 			const avatarElement = document.createElement("img")
-			avatarElement.src = post.author.avatar ?? ""
+			avatarElement.src = post?.author?.avatar ?? ""
 			avatarElement.className = "avatar"
 			authorContainer.appendChild(avatarElement)
 			const displayNameElement = document.createElement("strong")
-			displayNameElement.innerText = `${post.author.displayName ?? post.author.handle}`
+			displayNameElement.innerText = `${post?.author?.displayName ?? post?.author?.handle ?? ""}`
 			authorContainer.appendChild(displayNameElement)
 			const handleElement = document.createElement("span")
-			handleElement.innerText = `@${post.author.handle}`
+			handleElement.innerText = `@${post?.author?.handle ?? ""}`
 			handleElement.className = "soft"
-			if (post.author.pronouns) {
+			if (post.author?.pronouns) {
 				const pronounsElement = document.createElement("span")
 				pronounsElement.innerText = ` (${post.author.pronouns})`
 				pronounsElement.className = "pronouns soft"
@@ -61,6 +61,25 @@
 					if (embedElement) postElement.appendChild(embedElement)
 				}
 			}
+			const interactionsContainer = document.createElement("div")
+			interactionsContainer.className = "interactionsContainer"
+			postElement.appendChild(interactionsContainer)
+			const likeButton = document.createElement("button")
+			likeButton.className = "like"
+			likeButton.innerText = `${post.likeCount ?? 0}`
+			likeButton.title = "Likes"
+			interactionsContainer.appendChild(likeButton)
+			likeButton.addEventListener("click", () => {
+				likeButton.disabled = true
+				vscode.postMessage({
+					type: "like",
+					post: {
+						uri: post.uri,
+						cid: post.cid,
+					},
+				})
+			})
+			if (post.viewer?.like) likeButton.disabled = true
 			return postElement
 		}
 		/**@todo Use ATProto package validation?
@@ -76,7 +95,10 @@
 					const imageElement = document.createElement("img")
 					imageElement.src = image.thumb
 					imageElement.className = "postImageThumbnail"
-					if (image.alt) imageElement.alt = image.alt
+					if (image.alt) {
+						imageElement.alt = image.alt
+						imageElement.title = image.alt
+					}
 					imagesContainer.appendChild(imageElement)
 				}
 				return imagesContainer
@@ -92,6 +114,10 @@
 				if (recordWithMediaView.media.$type == "app.bsky.embed.images#view") {
 					const imagesContainer = handleImageView(recordWithMediaView.media)
 					if (imagesContainer) divElement.appendChild(imagesContainer)
+				} else {
+					const unknownTypeElement = document.createElement("div")
+					unknownTypeElement.innerText = `Unsupported media type: ${recordWithMediaView.media.$type}`
+					divElement.appendChild(unknownTypeElement)
 				}
 				quotedPostElement.className += " quotedPost"
 				divElement.appendChild(quotedPostElement)
@@ -107,6 +133,9 @@
 					return quotedPostElement
 				}
 			}
+			const unknownTypeElement = document.createElement("div")
+			unknownTypeElement.innerText = `Unsupported embed type: ${embed.$type}`
+			return unknownTypeElement
 		}
 	}
 
@@ -115,6 +144,7 @@
 		/** @type {{type: string; value: AppBskyFeedDefs.FeedViewPost[]}} */
 		const message = event.data
 		if (message.type == "addPosts") {
+			loadMoreButton.disabled = false
 			const posts = message.value
 			console.log(posts)
 			const postsContainer = document.getElementById("postsContainer")
@@ -125,9 +155,27 @@
 					// skip replies for now
 					continue
 				}
-				const postElement = PostGenerator.generatePostCard(feedViewPost)
-				postsContainer.appendChild(postElement)
+				try {
+					const postElement = PostGenerator.generatePostCard(feedViewPost)
+					postsContainer.appendChild(postElement)
+				} catch (error) {
+					// append error and JSON dump of post
+					const errorElement = document.createElement("div")
+					errorElement.className = "error"
+					errorElement.innerText = error.message
+					const preElement = document.createElement("pre")
+					preElement.innerText = JSON.stringify(feedViewPost, null, 2)
+					errorElement.appendChild(preElement)
+					postsContainer.appendChild(errorElement)
+				}
 			}
+		}
+		if (message.type == "setLoad") {
+			const loadMoreButton = document.getElementById("loadMoreButton")
+			loadMoreButton.addEventListener("click", () => {
+				loadMoreButton.disabled = true
+				vscode.postMessage({ type: "loadMore" })
+			})
 		}
 	})
 })()
