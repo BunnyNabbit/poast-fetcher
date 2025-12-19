@@ -61,7 +61,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@atproto/api": "^0.17.0",
+    "@atproto/api": "^0.18.3",
     "@atproto/oauth-client-node": "^0.3.9",
     "hls.js": "0.8.5"
   }
